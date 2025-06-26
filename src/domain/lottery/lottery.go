@@ -86,3 +86,11 @@ func (l *Lottery) DrawWinner() model.LotteryResponse {
 		Content:      fmt.Sprintf("🎉 ¡Felicidades <@%s>! Has ganado el sorteo por 1380RP. 🎊", l.winner.ID),
 	}
 }
+
+func (l *Lottery) Clear() model.LotteryResponse {
+	l.storage.Clear()
+
+	return model.LotteryResponse{
+		Content: "🧹  Has limpiado la lista de participantes",
+	}
+}

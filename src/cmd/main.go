@@ -26,6 +26,7 @@ func main() {
 		{Name: "list", Description: "Lista de participantes que se han unido al sorteo", ForEveryone: true, Event: genericDecorator(l.GetUsers)},
 		{Name: "winner", Description: "Conoce quién ganó el último sorteo", ForEveryone: false, Event: genericDecorator(l.GetWinner)},
 		{Name: "draw", Description: "Iniciar el sorteo", ForEveryone: true, IsAttachment: true, IsAdminOnly: true, Event: genericDecorator(l.DrawWinner)},
+		{Name: "clear", Description: "Iniciar el sorteo", IsAdminOnly: true, Event: genericDecorator(l.Clear)},
 	}
 
 	d.SetCommands(commands)
