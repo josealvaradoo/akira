@@ -6,28 +6,43 @@ import (
 	"math/rand/v2"
 )
 
-type Lottery struct {
-	users  []model.Member
-	winner model.Member
+type Storage interface {
+	GetAll() ([]model.Member, error)
+	GetWinner() (model.Winner, error)
+	Add(member *model.Member) error
+	SetWinner(winner *model.Winner) error
+	Clear() error
 }
 
-func New() Lottery {
-	return Lottery{users: []model.Member{}, winner: model.Member{}}
+type Lottery struct {
+	users   []model.Member
+	winner  model.Winner
+	storage Storage
+}
+
+func New(s Storage) Lottery {
+	return Lottery{users: []model.Member{}, winner: model.Winner{}, storage: s}
 }
 
 func (l *Lottery) AddUser(userId string, userName string) model.LotteryResponse {
+	l.users, _ = l.storage.GetAll()
+	member := model.Member{Name: userName, ID: userId}
+
 	for _, user := range l.users {
-		if user.ID == userId {
+		if user.ID == member.ID {
 			return model.LotteryResponse{Content: "⚠️  Ya te habías inscrito en el sorteo, tramposo"}
 		}
 	}
 
-	l.users = append(l.users, model.Member{Name: userName, ID: userId})
+	l.users = append(l.users, member)
+	l.storage.Add(&member)
 
 	return model.LotteryResponse{Content: fmt.Sprintf("🎟️  Te has unido al sorteo, suerte %s!", userName)}
 }
 
 func (l *Lottery) GetUsers() model.LotteryResponse {
+	l.users, _ = l.storage.GetAll()
+
 	if len(l.users) == 0 {
 		return model.LotteryResponse{Content: "👀  Todavía no hay participantes! Primero usa `/join`."}
 	}
@@ -41,6 +56,8 @@ func (l *Lottery) GetUsers() model.LotteryResponse {
 }
 
 func (l *Lottery) GetWinner() model.LotteryResponse {
+	l.winner, _ = l.storage.GetWinner()
+
 	if l.winner.ID == "" {
 		return model.LotteryResponse{Content: "🤔  No hay ganador aún, usa `/draw` para iniciar el sorteo."}
 	}
@@ -49,12 +66,20 @@ func (l *Lottery) GetWinner() model.LotteryResponse {
 }
 
 func (l *Lottery) DrawWinner() model.LotteryResponse {
+	l.users, _ = l.storage.GetAll()
+
 	if len(l.users) == 0 {
 		return model.LotteryResponse{Content: "☹️  Todavía no hay participantes! Primero usa `/join`"}
 	}
+
 	randomIndex := rand.IntN(len(l.users))
-	l.winner = l.users[randomIndex]
+
+	l.winner.ID = l.users[randomIndex].ID
+	l.winner.Name = l.users[randomIndex].Name
+
 	l.users = []model.Member{}
+	l.storage.SetWinner(&l.winner)
+	l.storage.Clear()
 
 	return model.LotteryResponse{
 		IsAttachment: true,

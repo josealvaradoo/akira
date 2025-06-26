@@ -4,13 +4,20 @@ import (
 	"discord-bot/src/domain/discord"
 	"discord-bot/src/domain/lottery"
 	"discord-bot/src/model"
+	"discord-bot/src/storage/database"
+	db "discord-bot/src/storage/database/lottery"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
-	l := lottery.New()
+	database.New(database.SQLite)
+
+	database.DB().AutoMigrate(model.Member{}, model.Winner{})
+
+	s := db.NewStorage()
+	l := lottery.New(s)
 	d := discord.New(os.Getenv("DISCORD_BOT_TOKEN"))
 
 	commands := []model.Command{
