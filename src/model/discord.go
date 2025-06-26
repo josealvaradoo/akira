@@ -9,6 +9,7 @@ type Handler struct {
 	Event        func(user *discordgo.InteractionCreate) LotteryResponse
 	ForEveryone  bool
 	IsAttachment bool
+	IsAdminOnly  bool
 }
 
 type Command struct {
@@ -17,4 +18,5 @@ type Command struct {
 	Event        func(user *discordgo.InteractionCreate) LotteryResponse
 	ForEveryone  bool
 	IsAttachment bool
+	IsAdminOnly  bool
 }

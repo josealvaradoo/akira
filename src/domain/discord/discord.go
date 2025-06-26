@@ -119,6 +119,11 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for _, handler := range handlers {
 		if i.ApplicationCommandData().Name == handler.Name {
+			if handler.IsAdminOnly && !isUserAdmin(s, i) {
+				respond(s, i, "❌ You need administrator permissions to use this command.", false, false)
+				return
+			}
+
 			event := handler.Event(i)
 			isAttachment := handler.IsAttachment && event.IsAttachment
 
@@ -164,4 +169,21 @@ func handleAttachment() []*discordgo.File {
 			Reader:      bytes.NewReader(fileData),
 		},
 	}
+}
+
+func isUserAdmin(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
+	// Check if interaction is from a guild (server)
+	if i.GuildID == "" {
+		return false
+	}
+
+	// Get user's permissions in the guild
+	permissions, err := s.UserChannelPermissions(i.Member.User.ID, i.ChannelID)
+	if err != nil {
+		log.Printf("Error getting user permissions: %v", err)
+		return false
+	}
+
+	// Check if user has administrator permission
+	return permissions&discordgo.PermissionAdministrator != 0
 }

@@ -25,13 +25,19 @@ func main() {
 		{Name: "join", Description: "Únete al sorteo por 1380RP", ForEveryone: false, Event: addUserDecorator(l.AddUser)},
 		{Name: "list", Description: "Lista de participantes que se han unido al sorteo", ForEveryone: true, Event: genericDecorator(l.GetUsers)},
 		{Name: "winner", Description: "Conoce quién ganó el último sorteo", ForEveryone: false, Event: genericDecorator(l.GetWinner)},
-		{Name: "draw", Description: "Iniciar el sorteo", ForEveryone: true, IsAttachment: true, Event: genericDecorator(l.DrawWinner)},
+		{Name: "draw", Description: "Iniciar el sorteo", ForEveryone: true, IsAttachment: true, IsAdminOnly: true, Event: genericDecorator(l.DrawWinner)},
 	}
 
 	d.SetCommands(commands)
 
 	for _, command := range commands {
-		d.AddHandler(model.Handler{Name: command.Name, Event: command.Event, ForEveryone: command.ForEveryone, IsAttachment: command.IsAttachment})
+		d.AddHandler(model.Handler{
+			Name:         command.Name,
+			Event:        command.Event,
+			ForEveryone:  command.ForEveryone,
+			IsAttachment: command.IsAttachment,
+			IsAdminOnly:  command.IsAdminOnly,
+		})
 	}
 
 	d.Start()
