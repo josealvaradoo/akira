@@ -7,12 +7,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
+	admin    = "Admin"
 	commands = []*discordgo.ApplicationCommand{}
 	handlers = []model.Handler{}
 )
@@ -120,7 +122,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for _, handler := range handlers {
 		if i.ApplicationCommandData().Name == handler.Name {
 			if handler.IsAdminOnly && !isUserAdmin(s, i) {
-				respond(s, i, "❌ You need administrator permissions to use this command.", false, false)
+				respond(s, i, "❌ You need the role `Admin` to use this command.", false, false)
 				return
 			}
 
@@ -177,13 +179,27 @@ func isUserAdmin(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
 		return false
 	}
 
-	// Get user's permissions in the guild
-	permissions, err := s.UserChannelPermissions(i.Member.User.ID, i.ChannelID)
+	// Get guild roles
+	guild, err := s.Guild(i.GuildID)
 	if err != nil {
-		log.Printf("Error getting user permissions: %v", err)
+		log.Printf("Error getting guild: %v", err)
 		return false
 	}
 
-	// Check if user has administrator permission
-	return permissions&discordgo.PermissionAdministrator != 0
+	// Find the required role ID by name
+	var requiredRoleID string
+	for _, role := range guild.Roles {
+		if role.Name == admin {
+			requiredRoleID = role.ID
+			break
+		}
+	}
+
+	if requiredRoleID == "" {
+		log.Printf("Role '%s' not found in guild", admin)
+		return false
+	}
+
+	// Check if user has the required role
+	return slices.Contains(i.Member.Roles, requiredRoleID)
 }
