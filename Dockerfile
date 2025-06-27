@@ -27,5 +27,11 @@ RUN apt-get update && apt-get install -y \
 # Copy the binary from builder stage
 COPY --from=builder /app/bot /usr/local/bin/bot
 
+# Copy the assets directory from builder stage
+COPY --from=builder /app/src/assets /app/src/assets
+
+# Set working directory to match the expected path structure
+WORKDIR /app
+
 # Run the binary
 CMD ["bot"]
