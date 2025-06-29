@@ -81,6 +81,8 @@ func (l *Lottery) DrawWinner() model.LotteryResponse {
 	l.storage.SetWinner(&l.winner)
 	l.storage.Clear()
 
+	fmt.Printf("🎉 <@%s> ha ganado el sorteo por 1380RP.\n", l.winner.ID)
+
 	return model.LotteryResponse{
 		IsAttachment: true,
 		Content:      fmt.Sprintf("🎉 ¡Felicidades <@%s>! Has ganado el sorteo por 1380RP. 🎊", l.winner.ID),
