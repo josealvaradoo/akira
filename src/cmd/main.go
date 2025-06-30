@@ -3,9 +3,11 @@ package main
 import (
 	"discord-bot/src/domain/discord"
 	"discord-bot/src/domain/lottery"
+	"discord-bot/src/domain/tournament"
 	"discord-bot/src/model"
 	"discord-bot/src/storage/database"
 	db "discord-bot/src/storage/database/lottery"
+	dbTournament "discord-bot/src/storage/database/tournament"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
@@ -18,6 +20,10 @@ func main() {
 
 	s := db.NewStorage()
 	l := lottery.New(s)
+
+	sTournament := dbTournament.NewStorage()
+	t := tournament.New(sTournament)
+
 	d := discord.New(os.Getenv("DISCORD_BOT_TOKEN"))
 
 	commands := []model.Command{
@@ -27,6 +33,7 @@ func main() {
 		{Name: "winner", Description: "Conoce quién ganó el último sorteo", ForEveryone: false, Event: genericDecorator(l.GetWinner)},
 		{Name: "draw", Description: "Iniciar el sorteo", ForEveryone: true, IsAttachment: true, IsAdminOnly: true, Event: genericDecorator(l.DrawWinner)},
 		{Name: "clear", Description: "Iniciar el sorteo", IsAdminOnly: true, Event: genericDecorator(l.Clear)},
+		{Name: "tournament", Description: "Get the 1v1 LoL tournament pairs", ForEveryone: true, Event: genericDecorator(t.GetPairs)},
 	}
 
 	d.SetCommands(commands)
